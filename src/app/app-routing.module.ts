@@ -1,6 +1,10 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { Comp404Component } from './comp404/comp404.component';
+import { GuardActivChildGuard } from './guards/guard-activ-child.guard';
+import { GuardLoadGuard } from './guards/guard-load.guard';
+import { GuardLogGuard } from './guards/guard-log.guard';
+import { GuardOutGuard } from './guards/guard-out.guard';
 import { Mod1Component } from './mod1/mod1.component';
 import { Mod2Component } from './mod2/mod2.component';
 
@@ -9,28 +13,34 @@ const routes: Routes = [
     path: '',
     component: Mod1Component,
     loadChildren: './mod1/mod1.module#Mod1Module',
-    pathMatch: 'full'
-      
-      /*  () => 
+    pathMatch: 'full',
+
+    /*  () => 
           import('./mod1/mod1.module').then((file) => file.Mod1Module),   -- альтернативная запись - более предпочтительна*/
   },
   {
     path: 'mod1',
     component: Mod1Component,
-    loadChildren: () =>
-      import('./mod1/mod1.module').then((file) => file.Mod1Module),
-  },
-  {
-    path: 'mod1/:param1',
-    component: Mod1Component,
-    loadChildren: () =>
-      import('./mod1/mod1.module').then((file) => file.Mod1Module),
-  },
-  {
-    path: 'mod1/:param1/:param2/:param3',
-    component: Mod1Component,
-    loadChildren: () =>
-      import('./mod1/mod1.module').then((file) => file.Mod1Module),
+/*     loadChildren: () =>
+      import('./mod1/mod1.module').then((file) => file.Mod1Module), */
+    canActivate: [GuardLogGuard], //используется для применения guard-ов
+    canDeactivate: [GuardOutGuard],
+    canLoad: [GuardLoadGuard],
+    canActivateChild: [GuardActivChildGuard],
+    children: [
+      {
+        path: ':param1',
+        component: Mod1Component,
+        loadChildren: () =>
+          import('./mod1/mod1.module').then((file) => file.Mod1Module),
+      },
+      {
+        path: ':param1/:param2/:param3',
+        component: Mod1Component,
+        loadChildren: () =>
+          import('./mod1/mod1.module').then((file) => file.Mod1Module),
+      },
+    ],
   },
   {
     path: 'mod2',
@@ -40,13 +50,13 @@ const routes: Routes = [
   },
   {
     path: '404',
-    component: Comp404Component
+    component: Comp404Component,
   },
   {
-    path: '**',           //** должны находиться в конце, иначе ни один путь выше не сработает
+    path: '**', //** должны находиться в конце, иначе ни один путь выше не сработает
     redirectTo: '404',
-    pathMatch: 'full'       
-  }
+    pathMatch: 'full',
+  },
 ];
 
 @NgModule({
@@ -57,6 +67,6 @@ const routes: Routes = [
       scrollPositionRestoration: 'top',
     }),
   ],
-  exports: [RouterModule]
+  exports: [RouterModule],
 })
-export class AppRoutingModule { }
+export class AppRoutingModule {}
